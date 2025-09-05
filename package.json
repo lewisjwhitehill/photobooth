@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/lewisjwhitehill/photobooth-backend#readme",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
   }
 }

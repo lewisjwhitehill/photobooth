@@ -1,0 +1,45 @@
+import express from 'express'
+import { GoogleGenAI, Modality } from "@google/genai";
+import * as fs from "node:fs";
+
+const router = express.Router()
+
+async function main() {
+
+  const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+
+  const imagePath = "path/to/cat_image.png";
+  const imageData = fs.readFileSync(imagePath);
+  const base64Image = imageData.toString("base64");
+
+  const prompt = [
+        
+    { text: "Using the provided image of this person, please add pirate's clothing with an eye patch and a parrot on their shoulder" },
+    {
+      inlineData: {
+        mimeType: "image/png",
+        data: base64Image,
+      },
+    },
+  ];
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash-image-preview",
+    contents: prompt,
+  });
+  for (const part of response.candidates[0].content.parts) {
+    if (part.text) {
+      console.log(part.text);
+    } else if (part.inlineData) {
+      const imageData = part.inlineData.data;
+      const buffer = Buffer.from(imageData, "base64");
+      fs.writeFileSync("gemini-native-image.png", buffer);
+      console.log("Image saved as gemini-native-image.png");
+    }
+  }
+}
+
+main();
+
+
+export default router

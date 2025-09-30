@@ -1,3 +1,5 @@
+import multer from 'multer'
+
 // set up multer storage configuration
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -26,3 +28,5 @@ const fileFilterMiddleware = (req, file, cb) => {
 const upload = multer({ storage : fileStorageEngine, 
                         limits: { fileSize: 5 * 1024 * 1024 },
                         fileFilter: fileFilterMiddleware});
+
+export default upload

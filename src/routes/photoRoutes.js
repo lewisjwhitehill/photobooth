@@ -1,5 +1,6 @@
 // Photo API Endpoints
 import express from 'express'
+import upload from '../middleware/multer.js'
 
 // router for /photo endpoints
 const router = express.Router()

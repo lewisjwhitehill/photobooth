@@ -1,3 +1,5 @@
 node_modules/
 photobooth.rest
 .env
+test_photos/
+images/

@@ -1,5 +1,6 @@
 import express from 'express'
 import multer from 'multer'
+import photoRoutes from './routes/photoRoutes.js'
 import fs from 'fs'
 
 const app = express();
@@ -16,9 +17,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use('/photo', authRoutes)
-app.use('/todos', authMiddleware, todoRoutes)
-
+app.use('/photo', photoRoutes)
 
 // Global error handler
 app.use((err, req, res, next) => {

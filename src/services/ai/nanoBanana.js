@@ -1,8 +1,5 @@
-import express from 'express'
 import { GoogleGenAI, Modality } from "@google/genai";
 import * as fs from "node:fs";
-
-const router = express.Router()
 
 async function main() {
 
@@ -39,7 +36,4 @@ async function main() {
   }
 }
 
-main();
-
-
-export default router
+export default main

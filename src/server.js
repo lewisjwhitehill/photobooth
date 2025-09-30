@@ -1,8 +1,7 @@
 import express from 'express'
 import multer from 'multer'
 import photoRoutes from './routes/photoRoutes.js'
-import googleaiRoutes from './routes/googleaiRoutes.js'
-import fs from 'fs'
+import transformRoutes from './routes/transformRoutes.js'
 
 const app = express();
 
@@ -18,9 +17,8 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-// app.use(express.json()) not sure if I need this
 app.use('/photo', photoRoutes)
-app.use('/google', googleaiRoutes)
+app.use('/transform', transformRoutes)
 
 // Global error handler
 app.use((err, req, res, next) => {

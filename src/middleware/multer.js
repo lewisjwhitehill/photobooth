@@ -3,7 +3,7 @@ import multer from 'multer'
 // set up multer storage configuration
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "./images");
+        cb(null, "./images/raw");
     },
     filename: (req, file, cb) => {
         // taken from npm multer docs
@@ -13,11 +13,10 @@ const fileStorageEngine = multer.diskStorage({
     },
 });
 
-// set up multer file filtering configureation
+// set up multer file filtering configuration
 const fileFilterMiddleware = (req, file, cb) => {
     // make sure the file type is an image file that they're uploading
-    // could change to file.mimetype.startsWith("image/")
-    if ((file.mimetype === "image/png" || file.mimetype === "image/jpg" || file.mimetype === "image/jpeg" || file.mimetype === "application/octet-stream")) {
+    if (file.mimetype.startsWith('image/')) {
         cb(null, true)
     }  else {
         cb(new Error('BAD_FILE_TYPE'), false)

@@ -1,7 +1,6 @@
 import express from 'express'
 import multer from 'multer'
-import photoRoutes from './routes/photoRoutes.js'
-import transformRoutes from './routes/transformRoutes.js'
+import photoRoutes from './routes/routes.js'
 
 const app = express();
 
@@ -18,7 +17,6 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/photo', photoRoutes)
-app.use('/transform', transformRoutes)
 
 // Global error handler
 app.use((err, req, res, next) => {

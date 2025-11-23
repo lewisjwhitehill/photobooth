@@ -1,17 +1,7 @@
 import multer from 'multer'
 
 // set up multer storage configuration
-const fileStorageEngine = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "./images/raw");
-    },
-    filename: (req, file, cb) => {
-        // taken from npm multer docs
-        const uniquePreffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        // preserve the orgininal file name but add a unique suffix
-        cb(null, uniquePreffix + '-' + file.originalname);
-    },
-});
+const storage = multer.memoryStorage();
 
 // set up multer file filtering configuration
 const fileFilterMiddleware = (req, file, cb) => {
@@ -24,7 +14,7 @@ const fileFilterMiddleware = (req, file, cb) => {
 }
 
 // Give multer the storage configuration, individual file size limit and file type filtering function
-const upload = multer({ storage : fileStorageEngine, 
+const upload = multer({ storage : storage, 
                         limits: { fileSize: 5 * 1024 * 1024 },
                         fileFilter: fileFilterMiddleware});
 

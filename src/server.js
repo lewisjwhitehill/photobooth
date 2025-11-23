@@ -34,5 +34,5 @@ app.use((err, req, res, next) => {
         return res.status(400).json({error: "Unsupported file type. Image files only."})
     }
     // default server error
-    res.status(500).send("Something went wrong!");
+    res.status(500).json({error: err.message});
 });

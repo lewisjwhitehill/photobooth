@@ -4,6 +4,7 @@ import db from '../services/storage/db.js';
 import crypto from 'crypto';
 import pkg from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import primsa from '../prismaClient.js'
 import prisma from '../prismaClient.js';
 const { S3Client, PutObjectCommand, GetObjectCommand } = pkg;
 
@@ -29,8 +30,7 @@ const randomFunctionName = (bytes = 32) => crypto.randomBytes(bytes).toString('h
 export async function savePhoto (req, res, next) {
   try{
     // add to s3
-    const fileName = req.filename
-
+    const fileName = req.filename;
     // unique file name for s3
     const random_hex_name = randomFunctionName()
 
@@ -53,7 +53,7 @@ export async function savePhoto (req, res, next) {
     })
     console.log("added to prisma, id: ", photo.id)
 
-    res.status(201).JSON({"id" : photo.id})
+    res.status(201).json({"id" : photo.id})
 
   } catch(err){
       next(err);
@@ -79,24 +79,23 @@ export async function returnPhoto (req, res, next) {
   try{
 
     const fileID = req.fileID ?? -1;
+
     if((fileID == -1)){
       return res.status(404).json({error: "invalid file ID"})
     }
     
     // get file name on bucket from db
-    const photo = await prisma.photos.findUnique({
+    const photo = await primsa.photos.findUnique({
       where: {
-        id: fileID
+        id: parseInt(fileID)
       },
     })
+    
 
-    const getBucketName = db.prepare(`SELECT * FROM photos WHERE id = ?`)
-    const photoFile = getBucketName.get(fileID)
-    console.log("photofile: ", photoFile)
-    if(!photoFile){
-      return res.status(404).send({ message: "Photo not found"})
+    if(!photo){
+      return res.status(404).send({ message: "Photo not found in database"})
     }
-    const s3fileName = photoFile.bucketname;
+    const s3fileName = photo.bucketname;
     console.log("s3 file name retrieved from db: ", s3fileName)
     // retrieve file from s3
     const params = {
@@ -109,6 +108,7 @@ export async function returnPhoto (req, res, next) {
     res.status(200).json({"url": url})
 
   } catch(err){
+    console.log(err)
     next(err)
   }
 }

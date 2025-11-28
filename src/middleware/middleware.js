@@ -1,6 +1,5 @@
 // photo transforming middleware 
 import fs from 'fs'
-import path from 'path'
 import upload from './multer.js';
 import db from '../services/storage/db.js';
 
@@ -48,7 +47,8 @@ export function transformMiddleware(req, res, next){
 }
 
 export function photoReturnMiddleware(req, res, next){
-  req.fileID = req.headers['id']
+  req.headers
+  req.fileID = req.get('id');
   console.log("fileID: ", req.fileID)
   next()
 }

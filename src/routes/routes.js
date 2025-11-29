@@ -1,7 +1,7 @@
 // Photo API Endpoints
 import express from 'express'
 import {transformMiddleware, photoUploadMiddleware, photoReturnMiddleware} from '../middleware/middleware.js'
-import { returnPhoto, savePhoto } from '../controllers/controller.js'
+import { returnPhoto, savePhoto, returnAllPhotos } from '../controllers/controller.js'
 import { transformPhoto } from '../controllers/controller.js'
 
 // router for /photo endpoints
@@ -15,6 +15,9 @@ router.post('/transform_photo', transformMiddleware, transformPhoto);
 
 // photo retrieval endpoint
 router.get('/get_photo', photoReturnMiddleware, returnPhoto);
+
+// endpoint for retrieving all photos
+router.get('/get_all_photos', returnAllPhotos);
 
 // // get endpoint returning all photos stored on the server
 // router.get('/raw_photo', (req, res, next) => {

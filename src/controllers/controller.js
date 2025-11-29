@@ -113,3 +113,35 @@ export async function returnPhoto (req, res, next) {
   }
 }
 
+export async function returnAllPhotos (req, res, next) {
+  try{
+
+    const photos = await prisma.photos.findMany({orderBy: [{ id: 'desc'}]})
+    // get file name on bucket from db
+    const photoArray = await Promise.all(
+      photos.map(async (photo) => {
+        const params = {
+          Bucket: bucketName,
+          Key: photo.bucketname,
+        };
+
+        const command = new GetObjectCommand(params);
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+
+        return {
+          id: photo.id,
+          originalName: photo.originalname,
+          url,
+        };
+      })
+    );
+
+    res.status(200).json(photoArray);
+  } catch(err){
+    console.log(err)
+    next(err)
+  }
+}
+
+
+

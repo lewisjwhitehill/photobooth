@@ -63,12 +63,42 @@ export async function savePhoto (req, res, next) {
 export async function transformPhoto (req, res, next) {
   try {
     // get the file names
-    const filePath = req.filePath ?? [];
     const instructions = req.instructions ?? "";
+    const fileID = req.fileID
 
-    if (!filePath || !instructions) return res.status(400).json({ error: 'Instructions or path invalid' });
+    // get image data from s3
+    // get file name on bucket from db
+    const photo = await primsa.photos.findUnique({
+      where: {
+        id: parseInt(fileID)
+      },
+    })
+    
+    if(!photo){
+      return res.status(404).send({ message: "Photo not found in database"})
+    }
+    const s3fileName = photo.bucketname;
+
+    // retrieve file from s3
+    const params = {
+      Bucket: bucketName,
+      Key: s3fileName,
+    }
+    const command = new GetObjectCommand(params)
+
+    const { Body } = await s3.send(command);
+
+    // body is a stream, convert to buffer
+    const chunks = [];
+    for await (const chunk of Body){
+      chunks.push(chunk);
+    }
+    
+    const imageData = Buffer.concat(chunks);
+
+    if (!imageData || !instructions) return res.status(400).json({ error: 'Instructions or image data invalid' });
     // convert the file 
-    const result = await convertPhoto(filePath, instructions);
+    const result = await convertPhoto(imageData, instructions);
     return res.json({ "successful transformation" : result });
   } catch (err) { 
       next(err); 

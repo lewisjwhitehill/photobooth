@@ -22,17 +22,6 @@ export function transformMiddleware(req, res, next){
 
   const fileID = req.headers['id']
 
-  // Get filepath from db
-  const getFilePath = db.prepare(`SELECT * FROM photos WHERE id = ?`)
-  const photoFile = getFilePath.get(fileID)
-  if(!photoFile){return res.status(404).send({ message: "Photo not found"})}
-  const filePath = photoFile.filepath;
-
-  // make sure filepath still exists on disk
-  if(!fs.existsSync(filePath)){
-    return res.status(404).json({"error" : "File not found on server"})
-  }
-
   // get instructions from request headers
   const instructions = req.headers['instructions']
   if(!instructions){
@@ -40,7 +29,7 @@ export function transformMiddleware(req, res, next){
   }
 
   // set fields
-  req.filePath = filePath
+  req.fileID = fileID
   req.instructions = instructions
   
   next();

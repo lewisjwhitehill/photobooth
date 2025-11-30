@@ -7,14 +7,13 @@ import { v4 as uuidv4 } from "uuid";
 import { transcode } from "node:buffer";
 
 
-export async function transformImage(instructions, image_path) {
+export async function transformImage(instructions, imageData) {
   // make sure valid fields were provided
-  if(!instructions || !image_path){ throw new Error("transform error: invalid information")}
+  if(!instructions || !imageData){ throw new Error("transform error: invalid information")}
 
   const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
   // convert the image path into base 64
-  const imageData = fs.readFileSync(image_path);
   const base64Image = imageData.toString("base64");
   // default to png
   const mimeType = mime.lookup(image_path) || "image/png";

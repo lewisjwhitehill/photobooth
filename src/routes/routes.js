@@ -19,9 +19,4 @@ router.get('/get_photo', photoReturnMiddleware, returnPhoto);
 // endpoint for retrieving all photos
 router.get('/get_all_photos', returnAllPhotos);
 
-// // get endpoint returning all photos stored on the server
-// router.get('/raw_photo', (req, res, next) => {
-//     res.json(req.files || [])
-// });
-
 export default router

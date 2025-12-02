@@ -1,81 +1,81 @@
 // controller for /photo endpoints
-import { convertPhoto } from '../services/transform/transform.js';
-import db from '../services/storage/db.js';
-import crypto from 'crypto';
+import { convertPhoto } from "../services/transform/transform.js";
+import db from "../services/storage/db.js";
+import crypto from "crypto";
 import pkg from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import primsa from '../prismaClient.js'
-import prisma from '../prismaClient.js';
+import primsa from "../prismaClient.js";
+import prisma from "../prismaClient.js";
 const { S3Client, PutObjectCommand, GetObjectCommand } = pkg;
 
 // import dotenv from 'dotenv';
 
-// S3 variables 
-const bucketName = process.env.BUCKET_NAME
-const bucketRegion = process.env.BUCKET_REGION
-const accessKey = process.env.ACCESS_KEY
-const secretAccessKey = process.env.SECRET_ACCESS_KEY
+// S3 variables
+const bucketName = process.env.BUCKET_NAME;
+const bucketRegion = process.env.BUCKET_REGION;
+const accessKey = process.env.ACCESS_KEY;
+const secretAccessKey = process.env.SECRET_ACCESS_KEY;
 
 const s3 = new S3Client({
   credentials: {
     accessKeyId: accessKey,
-    secretAccessKey: secretAccessKey
+    secretAccessKey: secretAccessKey,
   },
-  region: bucketRegion
-})
+  region: bucketRegion,
+});
 
 // function to create unique names
-const randomFunctionName = (bytes = 32) => crypto.randomBytes(bytes).toString('hex')
+const randomFunctionName = (bytes = 32) =>
+  crypto.randomBytes(bytes).toString("hex");
 
-export async function savePhoto (req, res, next) {
-  try{
+export async function savePhoto(req, res, next) {
+  try {
     // add to s3
     const fileName = req.filename;
     // unique file name for s3
-    const random_hex_name = randomFunctionName()
+    const random_hex_name = randomFunctionName();
 
     const params = {
       Bucket: bucketName,
       Key: random_hex_name,
       Body: req.file.buffer,
-      ContentType: req.file.mimetype
-    }
-    
+      ContentType: req.file.mimetype,
+    };
+
     const command = new PutObjectCommand(params);
 
-    const s3_result = await s3.send(command)
-    console.log("added to s3")
+    const s3_result = await s3.send(command);
+    console.log("added to s3");
     const photo = await prisma.photos.create({
       data: {
         bucketname: random_hex_name,
-        originalname: fileName
-      }
-    })
-    console.log("added to prisma, id: ", photo.id)
+        originalname: fileName,
+      },
+    });
+    console.log("added to prisma, id: ", photo.id);
 
-    res.status(201).json({"id" : photo.id})
-
-  } catch(err){
-      next(err);
+    res.status(201).json({ id: photo.id });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function transformPhoto (req, res, next) {
+export async function transformPhoto(req, res, next) {
   try {
     // get the file names
     const instructions = req.instructions ?? "";
-    const fileID = req.fileID
+    const fileID = req.fileID;
 
     // get image data from s3
     // get file name on bucket from db
     const photo = await primsa.photos.findUnique({
       where: {
-        id: parseInt(fileID)
+        id: parseInt(fileID),
       },
-    })
-    
-    if(!photo){
-      return res.status(404).send({ message: "Photo not found in database"})
+    });
+
+    if (!photo) {
+      return res.status(404).send({ message: "Photo not found in database" });
     }
     const s3fileName = photo.bucketname;
 
@@ -83,70 +83,69 @@ export async function transformPhoto (req, res, next) {
     const params = {
       Bucket: bucketName,
       Key: s3fileName,
-    }
-    const command = new GetObjectCommand(params)
+    };
+    const command = new GetObjectCommand(params);
 
     const { Body } = await s3.send(command);
 
     // body is a stream, convert to buffer
     const chunks = [];
-    for await (const chunk of Body){
+    for await (const chunk of Body) {
       chunks.push(chunk);
     }
-    
+
     const imageData = Buffer.concat(chunks);
 
-    if (!imageData || !instructions) return res.status(400).json({ error: 'Instructions or image data invalid' });
-    // convert the file 
+    if (!imageData || !instructions)
+      return res
+        .status(400)
+        .json({ error: "Instructions or image data invalid" });
+    // convert the file
     const result = await convertPhoto(imageData, instructions);
-    return res.json({ "successful transformation" : result });
-  } catch (err) { 
-      next(err); 
+    return res.json({ "successful transformation": result });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function returnPhoto (req, res, next) {
-  try{
-
+export async function returnPhoto(req, res, next) {
+  try {
     const fileID = req.fileID ?? -1;
 
-    if((fileID == -1)){
-      return res.status(404).json({error: "invalid file ID"})
+    if (fileID == -1) {
+      return res.status(404).json({ error: "invalid file ID" });
     }
-    
+
     // get file name on bucket from db
     const photo = await primsa.photos.findUnique({
       where: {
-        id: parseInt(fileID)
+        id: parseInt(fileID),
       },
-    })
-    
+    });
 
-    if(!photo){
-      return res.status(404).send({ message: "Photo not found in database"})
+    if (!photo) {
+      return res.status(404).send({ message: "Photo not found in database" });
     }
     const s3fileName = photo.bucketname;
-    console.log("s3 file name retrieved from db: ", s3fileName)
+    console.log("s3 file name retrieved from db: ", s3fileName);
     // retrieve file from s3
     const params = {
       Bucket: bucketName,
       Key: s3fileName,
-    }
-    const command = new GetObjectCommand(params)
-    
-    const url = await getSignedUrl(s3, command, {expiresIn:3600})
-    res.status(200).json({"url": url})
+    };
+    const command = new GetObjectCommand(params);
 
-  } catch(err){
-    console.log(err)
-    next(err)
+    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    res.status(200).json({ url: url });
+  } catch (err) {
+    console.log(err);
+    next(err);
   }
 }
 
-export async function returnAllPhotos (req, res, next) {
-  try{
-
-    const photos = await prisma.photos.findMany({orderBy: [{ id: 'desc'}]})
+export async function returnAllPhotos(req, res, next) {
+  try {
+    const photos = await prisma.photos.findMany({ orderBy: [{ id: "desc" }] });
     // get file name on bucket from db
     const photoArray = await Promise.all(
       photos.map(async (photo) => {
@@ -163,15 +162,12 @@ export async function returnAllPhotos (req, res, next) {
           originalName: photo.originalname,
           url,
         };
-      })
+      }),
     );
 
     res.status(200).json(photoArray);
-  } catch(err){
-    console.log(err)
-    next(err)
+  } catch (err) {
+    console.log(err);
+    next(err);
   }
 }
-
-
-

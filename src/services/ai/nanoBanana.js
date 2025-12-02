@@ -6,41 +6,44 @@ import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import { transcode } from "node:buffer";
 
-
 export async function transformImage(instructions, imageData) {
   // make sure valid fields were provided
-  if(!instructions || !imageData){ throw new Error("transform error: invalid information")}
+  if (!instructions || !imageData) {
+    throw new Error("transform error: invalid information");
+  }
 
-  const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   // convert the image path into base 64
   const base64Image = imageData.toString("base64");
   // default to png
   const mimeType = mime.lookup(image_path) || "image/png";
 
-  const instruction_text = instructions
+  const instruction_text = instructions;
 
   const prompt = [
-        { text: instruction_text },
-        {
-          inlineData: {
-                  mimeType: mimeType,
-                  data: base64Image,
-          },
-        },
+    { text: instruction_text },
+    {
+      inlineData: {
+        mimeType: mimeType,
+        data: base64Image,
+      },
+    },
   ];
-  console.log("calling nano banana stuff...")
+  console.log("calling nano banana stuff...");
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-image-preview",
     contents: prompt,
   });
 
   // Get path to the folder we want to save in
-  const __dirname = process.cwd();  // project root
+  const __dirname = process.cwd(); // project root
   const transformedDir = path.join(__dirname, "images", "transformed");
 
   if (!fs.existsSync(transformedDir)) {
-    throw new Error(`transform error: this file path doesn't exist: ${transformedDir}`)
+    throw new Error(
+      `transform error: this file path doesn't exist: ${transformedDir}`,
+    );
   }
   // Get the finalized path and file name we're saving to
   const outputFilename = `transformed-${uuidv4()}.png`;
@@ -51,7 +54,7 @@ export async function transformImage(instructions, imageData) {
       const imageData = part.inlineData.data;
       const buffer = Buffer.from(imageData, "base64");
       fs.writeFileSync(outputPath, buffer);
-      return outputFilename
+      return outputFilename;
     }
   }
 }

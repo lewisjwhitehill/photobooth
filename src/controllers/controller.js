@@ -63,7 +63,7 @@ export async function savePhoto(req, res, next) {
 export async function transformPhoto(req, res, next) {
   try {
     // get the file names
-    const instructions = req.instructions ?? "";
+    const instructions = req.instructions;
     const fileID = req.fileID;
 
     // get image data from s3
@@ -80,13 +80,13 @@ export async function transformPhoto(req, res, next) {
     const s3fileName = photo.bucketname;
 
     // retrieve file from s3
-    const params = {
+    const params1 = {
       Bucket: bucketName,
       Key: s3fileName,
     };
-    const command = new GetObjectCommand(params);
+    const command1 = new GetObjectCommand(params1);
 
-    const { Body } = await s3.send(command);
+    const { Body } = await s3.send(command1);
 
     // body is a stream, convert to buffer
     const chunks = [];
@@ -100,9 +100,39 @@ export async function transformPhoto(req, res, next) {
       return res
         .status(400)
         .json({ error: "Instructions or image data invalid" });
-    // convert the file
-    const result = await convertPhoto(imageData, instructions);
-    return res.json({ "successful transformation": result });
+    // convert the file, should return an object containing a buffer with the image data and a field for the mimeType
+    const { buffer, mimeType } = await convertPhoto(imageData, instructions);
+    
+    // send back to S3 
+    const params2 = {
+      Bucket: bucketName,
+      Key: s3fileName,
+      Body: buffer,
+      ContentType: mimeType,
+    };
+
+    const command2 = new PutObjectCommand(params2);
+
+    const s3_result = await s3.send(command2);
+    console.log("added to s3");
+
+
+    // update db with the transformed flag once the image has been uploaded back to s3
+    const photoUpdate = await prisma.photos.update({
+      where: {
+        id: parseInt(fileID),
+      },
+      data: {
+        transformed: true
+      },
+    });
+    console.log("added to prisma, id: ", fileID);
+    // return the id of the photo again
+    return res.json({ 
+      "status": "success",
+      "message": "photo successfully transformed",
+      "id": fileID,
+    });
   } catch (err) {
     next(err);
   }

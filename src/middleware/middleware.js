@@ -20,6 +20,9 @@ export async function photoUploadMiddleware(req, res, next) {
 
 export function transformMiddleware(req, res, next) {
   const fileID = req.headers["id"];
+  if (!fileID) {
+    res.status(400).json({ error: "file id not provided" });
+  }
 
   // get instructions from request headers
   const instructions = req.headers["instructions"];

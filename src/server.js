@@ -12,7 +12,11 @@ app.listen(port, () => {
 
 // get endpoint
 app.get("/", (req, res) => {
-  res.send("<h1>Welcome to the photo uploader. Wow!</h1>");
+  res.json({
+  "status": "ok",
+  "message": "AI Photobooth backend is running",
+  "routes": ["/photo", "/google"]
+  });
 });
 
 // Routes

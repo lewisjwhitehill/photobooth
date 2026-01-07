@@ -4,7 +4,10 @@ import photoRoutes from "./routes/routes.js";
 
 const app = express();
 
-const port = 8000 || process.env.port;
+// Middleware
+app.use(express.json());
+
+const port = process.env.PORT || 8000;
 
 app.listen(port, () => {
   console.log(`Server is now listening on ${port}`);
@@ -13,9 +16,15 @@ app.listen(port, () => {
 // get endpoint
 app.get("/", (req, res) => {
   res.json({
-  "status": "ok",
-  "message": "AI Photobooth backend is running",
-  "routes": ["/photo", "/google"]
+    status: "ok",
+    message: "AI Photobooth backend is running",
+    version: "1.0.0",
+    endpoints: {
+      "POST /photo/upload_photo": "Upload a photo",
+      "POST /photo/transform_photo": "Transform a photo using AI",
+      "GET /photo/get_photo": "Get a presigned URL for a photo",
+      "GET /photo/get_all_photos": "Get all photos with presigned URLs",
+    },
   });
 });
 

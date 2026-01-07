@@ -1,7 +1,5 @@
 // photo transforming middleware
-import fs from "fs";
 import upload from "./multer.js";
-import db from "../services/storage/db.js";
 
 export async function photoUploadMiddleware(req, res, next) {
   // upload folders to disk with multer
@@ -21,13 +19,13 @@ export async function photoUploadMiddleware(req, res, next) {
 export function transformMiddleware(req, res, next) {
   const fileID = req.headers["id"];
   if (!fileID) {
-    res.status(400).json({ error: "file id not provided" });
+    return res.status(400).json({ error: "file id not provided" });
   }
 
   // get instructions from request headers
   const instructions = req.headers["instructions"];
   if (!instructions) {
-    res.status(400).json({ error: "instructions not provided" });
+    return res.status(400).json({ error: "instructions not provided" });
   }
 
   // set fields
@@ -38,7 +36,6 @@ export function transformMiddleware(req, res, next) {
 }
 
 export function photoReturnMiddleware(req, res, next) {
-  req.headers;
   req.fileID = req.get("id");
   console.log("fileID: ", req.fileID);
   next();

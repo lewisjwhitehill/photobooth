@@ -1,5 +1,8 @@
+.gitignore
 node_modules/
 photobooth.rest
 .env
 test_photos/
 images/
+.DS_Store
+/src/generated/prisma

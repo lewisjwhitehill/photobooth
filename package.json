@@ -1,8 +1,8 @@
 {
   "name": "photobooth-app",
   "version": "1.0.0",
-  "description": "Backend for an AI photobooth app.",
-  "main": "index.js",
+  "description": "AI-powered photobooth backend with AWS S3 storage, Prisma ORM, and Google Gemini image transformations",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,9 +13,18 @@
     "type": "git",
     "url": "git+https://github.com/lewisjwhitehill/photobooth-backend.git"
   },
-  "keywords": [],
+  "keywords": [
+    "photobooth",
+    "ai",
+    "image-transformation",
+    "aws-s3",
+    "prisma",
+    "gemini",
+    "express",
+    "rest-api"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/lewisjwhitehill/photobooth-backend/issues"
   },

@@ -1,10 +1,8 @@
 // controller for /photo endpoints
 import { convertPhoto } from "../services/transform/transform.js";
-import db from "../services/storage/db.js";
 import crypto from "crypto";
 import pkg from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import primsa from "../prismaClient.js";
 import prisma from "../prismaClient.js";
 const { S3Client, PutObjectCommand, GetObjectCommand } = pkg;
 
@@ -68,7 +66,7 @@ export async function transformPhoto(req, res, next) {
 
     // get image data from s3
     // get file name on bucket from db
-    const photo = await primsa.photos.findUnique({
+    const photo = await prisma.photos.findUnique({
       where: {
         id: parseInt(fileID),
       },
@@ -102,8 +100,8 @@ export async function transformPhoto(req, res, next) {
         .json({ error: "Instructions or image data invalid" });
     // convert the file, should return an object containing a buffer with the image data and a field for the mimeType
     const { buffer, mimeType } = await convertPhoto(imageData, instructions);
-    
-    // send back to S3 
+
+    // send back to S3
     const params2 = {
       Bucket: bucketName,
       Key: s3fileName,
@@ -116,22 +114,21 @@ export async function transformPhoto(req, res, next) {
     const s3_result = await s3.send(command2);
     console.log("added to s3");
 
-
     // update db with the transformed flag once the image has been uploaded back to s3
     const photoUpdate = await prisma.photos.update({
       where: {
         id: parseInt(fileID),
       },
       data: {
-        transformed: true
+        transformed: true,
       },
     });
     console.log("added to prisma, id: ", fileID);
     // return the id of the photo again
-    return res.json({ 
-      "status": "success",
-      "message": "photo successfully transformed",
-      "id": fileID,
+    return res.json({
+      status: "success",
+      message: "photo successfully transformed",
+      id: fileID,
     });
   } catch (err) {
     next(err);
@@ -147,7 +144,7 @@ export async function returnPhoto(req, res, next) {
     }
 
     // get file name on bucket from db
-    const photo = await primsa.photos.findUnique({
+    const photo = await prisma.photos.findUnique({
       where: {
         id: parseInt(fileID),
       },
@@ -192,7 +189,7 @@ export async function returnAllPhotos(req, res, next) {
           originalName: photo.originalname,
           url,
         };
-      }),
+      })
     );
 
     res.status(200).json(photoArray);
